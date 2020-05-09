@@ -1,6 +1,6 @@
-# Scores
+# Basketball Scores
 
-**TODO: Add description**
+**This repo is a web scraper for [Basketball Reference](https://www.basketball-reference.com)**
 
 ## Installation
 
