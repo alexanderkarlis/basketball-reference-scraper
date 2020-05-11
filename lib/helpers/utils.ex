@@ -24,21 +24,10 @@ defmodule Scores.Utils do
     end
   end
 
-  def get_all_team_names() do
-    get_html_tokens(@url_teams)
-    |> Floki.find("#div_teams_active")
-    |> Floki.find("[data-stat=franch_name]")
-    |> Enum.drop(1)
-    |> Enum.map(fn x ->
-      case x do
-        {"th", _, href_row} -> Floki.attribute(href_row, "href") |> team_name_href() 
-        _ -> "no match"
-      end
-    end)
-  end
-
-  def team_name_href([name]) do
-    String.split(name, "/") |> Enum.at(2)
+  def create_team_url(team, year \\ "1998") do
+    url = "https://www.basketball-reference.com/teams/#{team}/#{year}.html"
+    IO.puts url
+    url
   end
 
   def get_team_url(team_name) do
