@@ -23,3 +23,7 @@ erl_crash.dump
 scores-*.tar
 
 .elixir_ls
+
+# data dir, default download dir
+data
+test_data

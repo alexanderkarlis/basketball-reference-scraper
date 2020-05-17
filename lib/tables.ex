@@ -14,6 +14,13 @@ defmodule Scores.Tables do
     |> extract_table_names()
   end
 
+  def get_all_tables(tokens, "tokens") do
+    Floki.attribute(tokens, "div", "id")
+    |> extract_table_names
+  end
+
+  def extract_table_names(list), do: Enum.filter(list, &(String.starts_with?(&1, "all")))
+
   def correct_tables(tokens, "all_salaries2") do
     Floki.find(tokens, "div .thead th")
     |> Floki.attribute("data-stat")
@@ -26,8 +33,5 @@ defmodule Scores.Tables do
   def correct_tables(tokens, _table) do
     Floki.find(tokens, "div div table thead tr th")
     |> Floki.attribute("data-stat")
-
   end
-
-  def extract_table_names(list), do: Enum.filter(list, &(String.starts_with?(&1, "all")))
 end

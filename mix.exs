@@ -23,7 +23,10 @@ defmodule Scores.MixProject do
   defp deps do
     [
       {:httpoison, "~> 1.6"},
-      {:floki, "~> 0.26.0"}
+      {:floki, "~> 0.26.0"},
+      {:timex, "~> 3.0"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"}
     ]
   end
 end

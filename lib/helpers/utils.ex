@@ -9,7 +9,7 @@ defmodule Scores.Utils do
         remove_html_comments(body)
         |> parse_document
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts "url not found"
+        IO.puts "#{url} not found"
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect reason
     end
@@ -29,12 +29,4 @@ defmodule Scores.Utils do
     IO.puts url
     url
   end
-
-  def get_team_url(team_name) do
-    case HTTPoison.get("https://www.basketball-reference.com/teams/#{team_name}/") do
-      {:ok, %HTTPoison.Response{status_code: 200}} -> IO.puts "#{team_name} worked!"
-      _ -> IO.puts ":("
-    end
-  end
-
 end
