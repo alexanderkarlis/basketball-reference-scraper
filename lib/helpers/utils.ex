@@ -1,17 +1,18 @@
 defmodule Scores.Utils do
-  @url "https://www.basketball-reference.com/teams/CHI/1998.html"
   @url_teams Application.fetch_env!(:scores, :teams)
+
+  require Logger
+  alias Logger, as: L
 
   def get_html_tokens(url) do
     case HTTPoison.get(url) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        File.write "output.html", body
         remove_html_comments(body)
         |> parse_document
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts "#{url} not found"
+        L.log :warn, "#{url} not found"
       {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect reason
+        L.log :error, reason
     end
   end
 
@@ -25,8 +26,8 @@ defmodule Scores.Utils do
   end
 
   def create_team_url(team, year \\ "1998") do
-    url = "https://www.basketball-reference.com/teams/#{team}/#{year}.html"
-    IO.puts url
+    url = "#{@url_teams}#{team}/#{year}.html"
+    L.log(:info, url)
     url
   end
 end

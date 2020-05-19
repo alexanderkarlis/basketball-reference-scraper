@@ -1,26 +1,40 @@
-defmodule Scores.Downloader.Teams do
+defmodule Scores.Teams do
+  @moduledoc """
+  Scores.Teams is the module for accessing the tables in the `teams` html link.
+  """
   @url_teams Application.fetch_env!(:scores, :teams)
-  @filter_criteria ["" | ~w(DUMMY)]
   @download_base_dir Application.fetch_env!(:scores, :download_path)
+  @filter_criteria ["" | ~w(DUMMY)]
 
   alias Scores.{Utils,Tables}
 
-  def download_tables_to_csv() do
-    get_all_team_names()
-    |> Enum.map(fn x -> spawn(Scores.Downloader.Teams, :table_to_csv, [x]) end)
+  @doc """
+  This is the main call to get specific Teams table to csv.
+  """
+  def table_to_csv(team) do
+    get_table_cols(team)
+    |> Enum.map(&(form_csv(&1, team)))
   end
 
   def get_all_team_names() do
     Utils.get_html_tokens(@url_teams)
-    |> Floki.find("#div_teams_active")
+    |> Floki.find("div table")
     |> Floki.find("[data-stat=franch_name]")
     |> Enum.drop(1)
     |> Enum.map(fn x ->
       case x do
-        {"th", _, href_row} -> Floki.attribute(href_row, "href") |> team_name_href()
+        {"th", _, ["Franchise"]} -> "no match"
+        {"th", _, row} -> create_team_kw_list(row)
         _ -> "no match"
       end
     end)
+    |> Enum.filter(&(&1 != "no match"))
+  end
+
+  defp create_team_kw_list(row) do
+    key = Floki.find(row, "a") |> Floki.text()
+    value = Floki.attribute(row, "href") |> Scores.Teams.team_name_href()
+    ["#{key}": value]
   end
 
   def get_table_cols(team) do
@@ -29,7 +43,7 @@ defmodule Scores.Downloader.Teams do
 
     parsed_tables = extract_table_cols(tokens, table_names)
     x = Enum.zip(table_names, parsed_tables)
-    get_all_attrib_values tokens, x
+    get_all_attrib_values(tokens, x)
   end
 
   def extract_table_cols(tokens, table_names) do
@@ -48,21 +62,17 @@ defmodule Scores.Downloader.Teams do
     end
   end
 
-  def table_to_csv(team) do
-    get_table_cols(team)
-    |> Enum.map(&(form_csv(&1, team)))
-  end
-
   def form_csv({table_name, data}, team) do
-    File.mkdir(@download_base_dir)
     File.mkdir("#{@download_base_dir}/#{team}")
     filename = "#{@download_base_dir}/#{team}/#{table_name}.csv"
     cols = []
     columns = Enum.map(data, fn {col, _values} -> [col | cols] end) |> Enum.flat_map(fn x -> x end)
-    File.write(filename, Enum.join(columns, ", "))
+
     value_set = Enum.map(data, fn {_cols, values} -> values end)
     |> Enum.zip
     |> Enum.reduce("", fn x, line -> line <> "\n" <> Enum.join(Tuple.to_list(x), ", ") end)
+
+    File.write(filename, Enum.join(columns, ", "))
     File.write(filename, value_set, [:append])
   end
 
@@ -93,8 +103,8 @@ defmodule Scores.Downloader.Teams do
     |> Enum.drop(1)
     |> Enum.map(fn x ->
       case Float.parse(x) do
-        {integer, rem} when rem == "" -> integer
-        {float, _rem}                 -> float
+        {integer_val, rem} when rem == "" -> integer_val
+        {float_val, _rem}                 -> float_val
         :error -> check_string(x)
       end
     end)
@@ -110,14 +120,13 @@ defmodule Scores.Downloader.Teams do
   end
 
   defp convert_date(date) do
-    case Timex.parse date, "%B %e, %Y", :strftime do
-      {:ok, datetime} -> Timex.format! datetime, "{YYYY}-{0M}-{D}"
-      _               -> "0000-00-00"
+    case DateTimeParser.parse(date) do
+      {:ok, date} -> date |> Date.to_string
+      _           -> "0000-00-00"
     end
   end
 
   def team_name_href([name]) do
     String.split(name, "/") |> Enum.at(2)
   end
-
 end

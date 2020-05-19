@@ -7,7 +7,8 @@ defmodule Scores.MixProject do
       version: "0.1.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      escript: [main_module: Scores.CLI.Teams]
     ]
   end
 
@@ -24,9 +25,10 @@ defmodule Scores.MixProject do
     [
       {:httpoison, "~> 1.6"},
       {:floki, "~> 0.26.0"},
-      {:timex, "~> 3.0"},
       {:ecto_sql, "~> 3.0"},
-      {:postgrex, ">= 0.0.0"}
+      {:postgrex, ">= 0.0.0"},
+      {:tzdata, "~> 0.1.8", override: true},
+      {:date_time_parser, "~> 1.0.0"}
     ]
   end
 end
