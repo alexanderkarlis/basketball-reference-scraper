@@ -1,11 +1,24 @@
 defmodule Scores.CLI.Teams do
   @moduledoc """
-  Usage:
+  ~~ Scores CLI ~~
+  ARGUMENTS --
+    • teams // returns a keyword list of full team name and a team code to be used
+    • download // pass in a team code and year to download year or years of team stats.
+
+  OPTIONS --
+    • <team>, pass in a team code, or a number of codes inside quotes
+    • <year>, currently only supports team info from a specific year. If no year is
+    passed in, will default to current year //
+      TODO, add ability to pass in a range of years.
+
+  USAGE --
     scores --team <team> --year <year>
 
-  Arguments --
-    teams // returns a keyword list of full team name and a team code to be used
-    download // pass in a team code and year to download year or years of team stats.
+  EXAMPLES --
+    ./scores download --teams CHI --year 2012
+    ./scores download --teams "CHI NYK PHI" --year 1998
+    ./scores teams
+    ./scores --help
   """
   @download_base_dir Application.fetch_env!(:scores, :download_path)
   @max_concurrency System.schedulers_online() * 2
@@ -56,7 +69,10 @@ defmodule Scores.CLI.Teams do
   end
 
   defp parse_year(opts) do
-    opts[:year]
+    case !!opts[:year] do
+      true  -> opts[:year]
+      false -> Date.utc_today().year
+    end
   end
 
   def download_tables_to_csv(teams, year) do
@@ -100,7 +116,7 @@ defmodule Scores.CLI.Teams do
   end
 
   def show_team_names_map do
-    IO.puts IO.ANSI.light_cyan <> "Check below for the team code to use."
+    IO.puts IO.ANSI.light_cyan <> "\nCheck below for the team code to use.\n"
     IO.puts IO.ANSI.light_green <> "\tTEAM NAME | " <> IO.ANSI.light_magenta <> "TEAM CODE\n"
     Enum.map(Scores.Teams.get_all_team_names, fn x ->
       for {key, val} <- x do
