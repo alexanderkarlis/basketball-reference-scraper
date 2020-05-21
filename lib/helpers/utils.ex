@@ -10,9 +10,9 @@ defmodule Scores.Utils do
         remove_html_comments(body)
         |> parse_document
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        L.log :warn, "#{url} not found"
+        L.warn("#{url} not found", ansi_color: IO.ANSI.yellow)
       {:error, %HTTPoison.Error{reason: reason}} ->
-        L.log :error, reason
+        L.error(reason, ansi_color: IO.ANSI.red)
     end
   end
 
@@ -27,7 +27,7 @@ defmodule Scores.Utils do
 
   def create_team_url(team, year \\ "1998") do
     url = "#{@url_teams}#{team}/#{year}.html"
-    L.log(:info, url)
+    L.info(url, ansi_color: IO.ANSI.green)
     url
   end
 end

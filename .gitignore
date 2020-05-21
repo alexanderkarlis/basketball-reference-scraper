@@ -27,3 +27,4 @@ scores-*.tar
 # data dir, default download dir
 data
 test_data
+./scores

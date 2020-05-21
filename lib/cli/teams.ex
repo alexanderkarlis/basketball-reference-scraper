@@ -8,6 +8,8 @@ defmodule Scores.CLI.Teams do
     download // pass in a team code and year to download year or years of team stats.
   """
   @download_base_dir Application.fetch_env!(:scores, :download_path)
+  @max_concurrency System.schedulers_online() * 2
+  @timeout 20000
 
   require Logger
   alias Logger, as: L
@@ -40,34 +42,54 @@ defmodule Scores.CLI.Teams do
   end
 
   defp process({opts, args}) do
-    IO.inspect args
-    IO.inspect opts
-    IO.inspect(Enum.at(args, 0))
-
-    case Enum.at(args, 0) do
+    [arg | []] = args
+    case arg do
       "teams"    -> show_team_names_map()
       "download" -> download_tables_to_csv(parse_teams(opts), parse_year(opts))
-      _          -> L.log :error, "#{args} not a valid command"
+      _          -> L.error("'#{args}' not a valid command", ansi_color: IO.ANSI.red)
     end
   end
 
   defp parse_teams(opts) do
-    IO.inspect(opts[:teams])
-    IO.inspect(String.split(opts[:teams]))
-    String.split(opts[:teams])
+    opts[:teams]
+    |> String.split()
   end
 
   defp parse_year(opts) do
     opts[:year]
   end
 
-  def download_tables_to_csv(teams, _year) do
+  def download_tables_to_csv(teams, year) do
     create_download_dir()
-    IO.inspect teams
-    case teams do
-      ["all"] -> Teams.get_all_team_names() |> Enum.map(fn x -> spawn(Scores.Teams, :table_to_csv, [x]) end)
-      _       -> Enum.map(teams, fn x -> spawn(Scores.Teams, :table_to_csv, [x]) end)
+    run_download(teams, year)
+  end
+
+  defp run_download(["all"], year) do
+    for team <- Teams.get_all_team_names() do
+      Keyword.values(team) |> Enum.at(0)
     end
+    |> Task.async_stream(
+      Scores.Teams,
+      :table_to_csv,
+      [year],
+      timeout: @timeout,
+      max_concurrency: @max_concurrency,
+      ordered: false
+    )
+    |> Stream.run
+  end
+
+  defp run_download(teams, year) do
+    Task.async_stream(
+      teams,
+      Scores.Teams,
+      :table_to_csv,
+      [year],
+      timeout: @timeout,
+      max_concurrency: @max_concurrency,
+      ordered: false
+    )
+    |> Stream.run
   end
 
   defp create_download_dir do
@@ -79,7 +101,7 @@ defmodule Scores.CLI.Teams do
 
   def show_team_names_map do
     IO.puts IO.ANSI.light_cyan <> "Check below for the team code to use."
-    IO.puts IO.ANSI.light_green <> "TEAM NAME | " <> IO.ANSI.light_magenta <> "TEAM CODE\n"
+    IO.puts IO.ANSI.light_green <> "\tTEAM NAME | " <> IO.ANSI.light_magenta <> "TEAM CODE\n"
     Enum.map(Scores.Teams.get_all_team_names, fn x ->
       for {key, val} <- x do
         key = IO.ANSI.light_green <> Atom.to_string(key) |> String.pad_trailing(29)

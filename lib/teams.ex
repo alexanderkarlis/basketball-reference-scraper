@@ -11,8 +11,8 @@ defmodule Scores.Teams do
   @doc """
   This is the main call to get specific Teams table to csv.
   """
-  def table_to_csv(team) do
-    get_table_cols(team)
+  def table_to_csv(team, year) do
+    get_table_cols(team, year)
     |> Enum.map(&(form_csv(&1, team)))
   end
 
@@ -37,8 +37,8 @@ defmodule Scores.Teams do
     ["#{key}": value]
   end
 
-  def get_table_cols(team) do
-    tokens = Utils.create_team_url(team) |> Utils.get_html_tokens()
+  def get_table_cols(team, year) do
+    tokens = Utils.create_team_url(team, year) |> Utils.get_html_tokens()
     table_names = Tables.get_all_tables(tokens, "tokens")
 
     parsed_tables = extract_table_cols(tokens, table_names)
