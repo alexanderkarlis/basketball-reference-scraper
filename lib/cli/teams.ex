@@ -80,7 +80,7 @@ defmodule Scores.CLI.Teams do
     run_download(teams, year)
   end
 
-  defp run_download(["all"], year) do
+  def run_download(["all"], year) do
     for team <- Teams.get_all_team_names() do
       Keyword.values(team) |> Enum.at(0)
     end
@@ -95,7 +95,7 @@ defmodule Scores.CLI.Teams do
     |> Stream.run
   end
 
-  defp run_download(teams, year) do
+  def run_download(teams, year) do
     Task.async_stream(
       teams,
       Scores.Teams,
