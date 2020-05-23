@@ -105,7 +105,7 @@ defmodule Scores.Teams do
       case Float.parse(x) do
         {integer_val, rem} when rem == "" -> integer_val
         {float_val, _rem}                 -> float_val
-        :error -> check_string(x)
+        :error                            -> check_string(x)
       end
     end)
   end

@@ -38,11 +38,13 @@ The teams argument returns a list of teams and codes. And the year argument take
 ```
 
 ## Todos
+- [ ] change the application to a better name??
 - [x] /teams/<team> table scraper
 - [x] incorporate CLI
 - [x] add a get all team options
 - [ ] make the CLI able to give a range of years
 - [ ] update scraper to download files into separate years
 - [ ] incorporate Ecto to have option to put into postgres
+- [ ] create a fuill fledged ecto layer ontop of all the data
 - [ ] use RabbitMQ to start a pipeline of other sports scrapers to better monitor
 ...
